@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.ProgressBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,7 +17,6 @@ import com.dicoding.dicodingeventapp.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private val viewModel: EventViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
-    private lateinit var SearchView: SearchView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,12 +24,8 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.setHasFixedSize(true)
-        //
-        recyclerView.layoutManager = GridLayoutManager(this, 2)
 
         binding.progressBar.visibility = View.VISIBLE
 
@@ -42,7 +36,6 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, DetailEventActivity::class.java)
                     intent.putExtra("id", event.id)
                     startActivity(intent)
-                    Log.d(TAG, "Selected Event ID: ${event.id}")
                 }
             } ?: run {
                 Log.e(TAG, "Event data is null")
@@ -59,6 +52,20 @@ class MainActivity : AppCompatActivity() {
                 query?.let {
                     viewModel.searchEvents(it)
                     Log.d("SearchView", "Query submitted: $it")
+
+                    viewModel.eventsLiveData.observe(this@MainActivity) { events ->
+                        events?.let {
+                            binding.progressBar.visibility = View.INVISIBLE
+                            recyclerView.adapter = EventAdapter(events) { event ->
+                                val intent = Intent(this@MainActivity, DetailEventActivity::class.java)
+                                intent.putExtra("id", event.id)
+                                startActivity(intent)
+                                Log.d(TAG, "Selected Event ID: ${event.id}")
+                            }
+                        } ?: run {
+                            Log.e(TAG, "Event data is null")
+                        }
+                    }
                 }
                 return false
             }
@@ -76,6 +83,11 @@ class MainActivity : AppCompatActivity() {
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigation.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
+                R.id.home -> {
+                    setContentView(R.layout.activity_home)
+                    viewModel.fetchEvents(0)
+                    true
+                }
                 R.id.upcoming -> {
                     searchView.visibility = View.VISIBLE
                     recyclerView.layoutManager = LinearLayoutManager(this)
@@ -93,3 +105,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+

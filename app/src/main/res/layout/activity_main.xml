@@ -25,7 +25,7 @@
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="170dp"
+        android:layout_gravity="center"
         android:translationZ="1dp" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

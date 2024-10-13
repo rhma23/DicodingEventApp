@@ -17,9 +17,6 @@ class EventViewModel : ViewModel() {
     private val _eventDetailLiveData = MutableLiveData<DetailResponse>()
     val eventDetailLiveData: LiveData<DetailResponse> get() = _eventDetailLiveData
 
-    private val _eventSearchLiveData = MutableLiveData<SearchResponse>()
-    val eventSearchLiveData : LiveData<SearchResponse> get() = _eventSearchLiveData
-
     fun fetchEvents(active: Int) {
         RetrofitClient.apiService.getEvents(active).enqueue(object : Callback<EventResponse> {
             override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
@@ -41,15 +38,36 @@ class EventViewModel : ViewModel() {
         })
     }
 
+    fun fetchEventsLimit(active: Int, limit: Int) {
+        RetrofitClient.apiService.getEventLimit(active, limit).enqueue(object : Callback<EventResponse> {
+            override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { eventResponse ->
+                        _eventsLiveData.value = eventResponse.listEvents
+                        Log.d("EventViewModel", "Data fetched EventViewModel: ${eventResponse.listEvents}")
+                    } ?: run {
+                        Log.e("EventViewModel", "Response body is null")
+                    }
+                } else {
+                    Log.e("EventViewModel", "API response not successful: ${response.code()}")
+                }
+            }
+
+            override fun onFailure(call: Call<EventResponse>, t: Throwable) {
+                Log.e("EventViewModel", "API call failed: ${t.message}")
+            }
+        })
+    }
+
+
 
     fun searchEvents(keyword: String) {
-        Log.d(TAG, "searchEventsTest: $keyword")
-        RetrofitClient.apiService.searchEvents(-1, keyword).enqueue(object : Callback<SearchResponse> {
-            override fun onResponse(call: Call<SearchResponse>, response: Response<SearchResponse>) {
+        RetrofitClient.apiService.searchEvents(-1, keyword).enqueue(object : Callback<EventResponse> {
+            override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
                 if (response.isSuccessful) {
                     response.body()?.let { eventResponse ->
                         // Ambil listEvents dari eventResponse dan set ke LiveData
-                        _eventSearchLiveData.value = eventResponse
+                        _eventsLiveData.value = eventResponse.listEvents
                         Log.d(TAG, "onResponse: $eventResponse")
                     } ?: run {
                         // Handle case if response body is null
@@ -60,21 +78,16 @@ class EventViewModel : ViewModel() {
                 }
             }
 
-            override fun onFailure(call: Call<SearchResponse>, t: Throwable) {
+            override fun onFailure(call: Call<EventResponse>, t: Throwable) {
                 // Handle failure case
                 Log.e("searchEvents", "API call failed: ${t.message}")
             }
         })
-
-
-
     }
-
 
     fun fetchEventDetail(id: String) {
         RetrofitClient.apiService.getEventDetail(id).enqueue(object : Callback<DetailResponse> {
             override fun onResponse(call: Call<DetailResponse>, response: Response<DetailResponse>) {
-                Log.d(TAG, "fetchEventDetail: $id")
                 if (response.isSuccessful) {
                     Log.d("EventDetailViewModel", "Raw Response: ${response.body().toString()}")
                     response.body()?.let { detailResponse ->

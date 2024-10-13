@@ -53,10 +53,13 @@ dependencies {
     implementation(libs.picasso)
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.glide)
     annotationProcessor(libs.glideCompiler)
     implementation(libs.async.http)
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
 }
